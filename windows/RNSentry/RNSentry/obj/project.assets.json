@@ -527,6 +527,9 @@
           }
         }
       },
+      "SharpRaven/2.4.0": {
+        "type": "package"
+      },
       "System.AppContext/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -3213,6 +3216,9 @@
           "runtimes/win8-arm/native/clrcompression.dll": {}
         }
       },
+      "SharpRaven/2.4.0": {
+        "type": "package"
+      },
       "System.AppContext/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -5751,6 +5757,9 @@
           "runtimes/win8-arm-aot/native/_._": {}
         }
       },
+      "SharpRaven/2.4.0": {
+        "type": "package"
+      },
       "System.AppContext/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -8261,6 +8270,9 @@
         "runtime": {
           "runtimes/win/lib/netcore50/System.Private.Uri.dll": {}
         }
+      },
+      "SharpRaven/2.4.0": {
+        "type": "package"
       },
       "System.AppContext/4.3.0": {
         "type": "package",
@@ -10809,6 +10821,9 @@
           "runtimes/aot/lib/netcore50/System.Private.Uri.dll": {}
         }
       },
+      "SharpRaven/2.4.0": {
+        "type": "package"
+      },
       "System.AppContext/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -13319,6 +13334,9 @@
         "runtime": {
           "runtimes/win/lib/netcore50/System.Private.Uri.dll": {}
         }
+      },
+      "SharpRaven/2.4.0": {
+        "type": "package"
       },
       "System.AppContext/4.3.0": {
         "type": "package",
@@ -15866,6 +15884,9 @@
         "runtime": {
           "runtimes/aot/lib/netcore50/System.Private.Uri.dll": {}
         }
+      },
+      "SharpRaven/2.4.0": {
+        "type": "package"
       },
       "System.AppContext/4.3.0": {
         "type": "package",
@@ -22501,6 +22522,20 @@
         "runtimes/win8-arm/native/clrcompression.dll"
       ]
     },
+    "SharpRaven/2.4.0": {
+      "sha512": "BkOWKli5aR9gMoKOYdMUaGKuN+lc+JCdoZNx+YG2i4jRbknXDh4K8VCgxpYUipr7A4VFG+HNjEaZ/i+USVtr3g==",
+      "type": "package",
+      "path": "sharpraven/2.4.0",
+      "files": [
+        "lib/net35/SharpRaven.dll",
+        "lib/net40/SharpRaven.dll",
+        "lib/net45/SharpRaven.dll",
+        "lib/net471/SharpRaven.dll",
+        "lib/netstandard2.0/SharpRaven.dll",
+        "sharpraven.2.4.0.nupkg.sha512",
+        "sharpraven.nuspec"
+      ]
+    },
     "System.AppContext/4.3.0": {
       "sha512": "fKC+rmaLfeIzUhagxY17Q9siv/sPrjjKcfNg1Ic8IlQkZLipo8ljcaZQu4VtI4Jqbzjc2VTjzGLF6WmsRXAEgA==",
       "type": "package",
@@ -27531,7 +27566,8 @@
     "UAP,Version=v10.0.10240": [
       "DeveloperInTheFlow.Sentry.UWP >= 0.2.2.2",
       "Microsoft.NETCore.UniversalWindowsPlatform >= 6.0.6",
-      "Newtonsoft.Json >= 11.0.2"
+      "Newtonsoft.Json >= 11.0.2",
+      "SharpRaven >= 2.4.0"
     ]
   },
   "packageFolders": {
@@ -27583,6 +27619,10 @@
           "Newtonsoft.Json": {
             "target": "Package",
             "version": "[11.0.2, )"
+          },
+          "SharpRaven": {
+            "target": "Package",
+            "version": "[2.4.0, )"
           }
         }
       }
@@ -27607,5 +27647,70 @@
         "#import": []
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package SharpRaven 2.4.0 is not compatible with uap10.0.10240 (UAP,Version=v10.0.10240). Package SharpRaven 2.4.0 supports:\r\n  - net35 (.NETFramework,Version=v3.5)\r\n  - net40 (.NETFramework,Version=v4.0)\r\n  - net45 (.NETFramework,Version=v4.5)\r\n  - net471 (.NETFramework,Version=v4.7.1)\r\n  - netstandard2.0 (.NETStandard,Version=v2.0)",
+      "libraryId": "SharpRaven",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package SharpRaven 2.4.0 is not compatible with uap10.0.10240 (UAP,Version=v10.0.10240) / win10-arm. Package SharpRaven 2.4.0 supports:\r\n  - net35 (.NETFramework,Version=v3.5)\r\n  - net40 (.NETFramework,Version=v4.0)\r\n  - net45 (.NETFramework,Version=v4.5)\r\n  - net471 (.NETFramework,Version=v4.7.1)\r\n  - netstandard2.0 (.NETStandard,Version=v2.0)",
+      "libraryId": "SharpRaven",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package SharpRaven 2.4.0 is not compatible with uap10.0.10240 (UAP,Version=v10.0.10240) / win10-arm-aot. Package SharpRaven 2.4.0 supports:\r\n  - net35 (.NETFramework,Version=v3.5)\r\n  - net40 (.NETFramework,Version=v4.0)\r\n  - net45 (.NETFramework,Version=v4.5)\r\n  - net471 (.NETFramework,Version=v4.7.1)\r\n  - netstandard2.0 (.NETStandard,Version=v2.0)",
+      "libraryId": "SharpRaven",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm-aot"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package SharpRaven 2.4.0 is not compatible with uap10.0.10240 (UAP,Version=v10.0.10240) / win10-x64. Package SharpRaven 2.4.0 supports:\r\n  - net35 (.NETFramework,Version=v3.5)\r\n  - net40 (.NETFramework,Version=v4.0)\r\n  - net45 (.NETFramework,Version=v4.5)\r\n  - net471 (.NETFramework,Version=v4.7.1)\r\n  - netstandard2.0 (.NETStandard,Version=v2.0)",
+      "libraryId": "SharpRaven",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-x64"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package SharpRaven 2.4.0 is not compatible with uap10.0.10240 (UAP,Version=v10.0.10240) / win10-x64-aot. Package SharpRaven 2.4.0 supports:\r\n  - net35 (.NETFramework,Version=v3.5)\r\n  - net40 (.NETFramework,Version=v4.0)\r\n  - net45 (.NETFramework,Version=v4.5)\r\n  - net471 (.NETFramework,Version=v4.7.1)\r\n  - netstandard2.0 (.NETStandard,Version=v2.0)",
+      "libraryId": "SharpRaven",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-x64-aot"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package SharpRaven 2.4.0 is not compatible with uap10.0.10240 (UAP,Version=v10.0.10240) / win10-x86. Package SharpRaven 2.4.0 supports:\r\n  - net35 (.NETFramework,Version=v3.5)\r\n  - net40 (.NETFramework,Version=v4.0)\r\n  - net45 (.NETFramework,Version=v4.5)\r\n  - net471 (.NETFramework,Version=v4.7.1)\r\n  - netstandard2.0 (.NETStandard,Version=v2.0)",
+      "libraryId": "SharpRaven",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-x86"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package SharpRaven 2.4.0 is not compatible with uap10.0.10240 (UAP,Version=v10.0.10240) / win10-x86-aot. Package SharpRaven 2.4.0 supports:\r\n  - net35 (.NETFramework,Version=v3.5)\r\n  - net40 (.NETFramework,Version=v4.0)\r\n  - net45 (.NETFramework,Version=v4.5)\r\n  - net471 (.NETFramework,Version=v4.7.1)\r\n  - netstandard2.0 (.NETStandard,Version=v2.0)",
+      "libraryId": "SharpRaven",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    }
+  ]
 }

@@ -50,7 +50,7 @@ namespace RNSentry
         public async void captureEvent(JObject evt)
         {
             var e = new Exception(evt.ToString());
-
+            
             await raven.CaptureExceptionAsync(e, false);
         }
 
