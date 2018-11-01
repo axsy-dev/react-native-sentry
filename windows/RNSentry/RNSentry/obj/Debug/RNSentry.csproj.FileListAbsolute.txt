@@ -1,2 +1,0 @@
-C:\Users\User\Projects\react-native-sentry\windows\RNSentry\RNSentry\obj\Debug\RNSentry.csprojResolveAssemblyReference.cache
-C:\Users\User\Projects\react-native-sentry\windows\RNSentry\RNSentry\obj\Debug\RNSentry.csproj.CoreCompileInputs.cache

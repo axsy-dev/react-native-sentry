@@ -63,3 +63,8 @@ wheelhouse
 
 # Editor
 .idea/
+.vs/
+
+# C#
+bin/
+obj/
