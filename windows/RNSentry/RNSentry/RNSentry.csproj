@@ -125,7 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ReactNative">
-      <HintPath>..\..\..\..\react-app\FSL\node_modules\react-native-windows\ReactWindows\ReactNative\bin\x86\Debug\ReactNative.dll</HintPath>
+      <HintPath>..\..\..\..\react-native-windows\ReactWindows\ReactNative\bin\x86\Debug\ReactNative.dll</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
