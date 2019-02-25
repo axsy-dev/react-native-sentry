@@ -1,5 +1,176 @@
 # Changelog
 
+## 0.42.0
+
+- Bump `sentry-cocoa` `4.2.1`
+- Fix a bug where environment was correctly set
+- Only upload source maps in gradle if non debug build
+
+## 0.41.1
+
+- Fix bump version script
+
+## 0.41.0
+
+- Update android build tools and gradle scripts to be compatible with latest version
+- Fix support to build on windows
+
+## 0.40.3
+
+- Bump `sentry-cocoa` `4.1.3`
+
+## 0.40.2
+
+- Fix import for ArrayList and ReadableArray on Android, Fixes #511
+
+## 0.40.1
+
+- Use `buildToolsVersion` in build.gradle
+
+## 0.40.0
+
+- Add fingerprint support for iOS/Android, Fixes #407
+- Add support for tvOS
+
+## v0.39.1
+
+- Bump `@sentry/wizard` `0.12.1`
+- Add constructor for `RNSentryPackage.java`, Fixes #490
+
+## v0.39.0
+
+- `react-native-sentry >= 0.39.0` requires `react-native >= 0.56.0`
+- [Android] Bumping of gradle deps
+```
+compileSdkVersion 26
+buildToolsVersion '26.0.3'
+...
+targetSdkVersion 26
+```
+- [Android] Use `sentry-android` `1.7.5`
+- Bump `@sentry/wizard` `0.11.0`
+- Bump `sentry-cocoa` `4.1.0`
+- Use new SDK identifier `sentry.javascript.react-native`
+
+## v0.38.3
+
+- Bump `@sentry/wizard` `0.10.2`
+
+## v0.38.2
+
+- [Android] Use `sentry-android` `1.7.4`
+
+## v0.38.1
+
+- [Android] set empty message to prevent breadcrumb exception
+
+## v0.38.0
+
+- [Android] Remove requirement to pass in `MainApplication` `new RNSentryPackage(MainApplication.this)`
+
+## v0.37.1
+
+- [Android] Call event callbacks even on failure to trigger crashes when device is offline
+
+## v0.37.0
+
+- Revert change to podspec file
+- Add support for transaction instead of culprit
+- Add equalsIgnoreCase to gradle release name compare
+- Bump sentry-java to 1.7.3
+
+## v0.36.0
+
+- Bump raven-js to 3.24.2
+- Fixed #391
+
+## v0.35.4
+
+- Bump sentry-cocoa to 3.12.4
+
+## v0.35.3
+
+- Fix wizard command
+
+## v0.35.2
+
+- Fixed #374
+
+## v0.35.1
+
+- Bump sentry-cocoa to 3.12.0
+
+## v0.35.0
+
+- Fixes an issue where error will not be reported to Sentry.
+
+## v0.34.1
+
+- Fixed #354
+
+## v0.34.0
+
+- Fixed #353
+- Fixed #347
+- Fixed #346
+- Fixed #342
+
+## v0.33.0
+
+- Add pro guard default rule @kazy1991
+- Exposed crashedLastLaunch for iOS @monotkate
+- Fixed #337
+- Fixed #333
+- Fixed #331
+- Fixed #322
+
+## v0.32.1
+
+- Update sentry-wizard
+
+## v0.32.0
+
+### Breaking changes
+
+### Migration guide upgrading from < 0.32.0
+
+Since we now use `@sentry/wizard` for linking with out new `@sentry/cli` package, the old
+`sentry-cli-bin` package has been deprecated.
+You have to search your codebase for `sentry-cli-binary` and replace it with `@sentry/cli`.
+There are few places where we put it during the link process:
+
+- In both `sentry.properties` files in `ios`/`android` folder
+- In your Xcode build scripts once in `Bundle React Native code and images` and once in `Upload Debug Symbols to Sentry`
+
+So e.g.:
+
+The `Upload Debug Symbols to Sentry` build script looks like this:
+
+```
+export SENTRY_PROPERTIES=sentry.properties
+../node_modules/sentry-cli-binary/bin/sentry-cli upload-dsym
+```
+should be changed to this:
+```
+export SENTRY_PROPERTIES=sentry.properties
+../node_modules/@sentry/cli/bin/sentry-cli upload-dsym
+```
+
+### General
+
+- Bump `@sentry/wizard` to `0.7.3`
+- Bump `sentry-cocoa` to `3.10.0`
+- Fixed #169
+
+## v0.31.0
+
+- Use https://github.com/getsentry/sentry-wizard for setup process
+
+## v0.30.3
+
+- Fix podspec file
+- Fix gradle regex to allow number in projectname
+
 ## v0.30.2
 
 Updated npm dependencies

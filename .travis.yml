@@ -1,15 +1,20 @@
 branches:
   only:
     - master
+    - /^release\/.+$/
+
+before_install:
+  - curl -o- -L https://yarnpkg.com/install.sh | bash
+  - export PATH="$HOME/.yarn/bin:$PATH"
 
 matrix:
   include:
-    - language: node_js
-      node_js: 8
-      env: LANE='node'
-      cache:
-        yarn: true
-      script: .travis/run.sh
+    # - language: node_js
+    #   node_js: 8
+    #   env: LANE='node'
+    #   cache:
+    #     yarn: true
+    #   script: .travis/run.sh
 
     - language: android
       sudo: required
@@ -25,27 +30,29 @@ matrix:
       before_install:
         - nvm install 8
         - .travis/before_install.sh
+        - echo yes | sdkmanager "platforms;android-26"
       android:
         components:
-          - build-tools-23.0.1
-          - android-23
-          - extra-android-m2repository
-          - extra-google-google_play_services
-          - extra-google-m2repository
-          - addon-google_apis-google-16
+          - tools
+          - platform-tools
+          - build-tools-28.0.3
+          - tools
       env: LANE='android'
       script: .travis/run.sh
 
     - language: objective-c
       os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9.4
+      node_js: 8
       cache:
         - bundler
         - pip
         - yarn
       env: LANE='ios'
-      before_install: .travis/before_install.sh
+      before_install:
+        - .travis/before_install.sh
       before_script:
+        - nvm install 8
         - sudo easy_install virtualenv
         - virtualenv ~/virtualenv
         - source ~/virtualenv/bin/activate
@@ -54,15 +61,17 @@ matrix:
     - language: node_js
       node_js: 8
       script: .travis/deploy.sh
-      deploy:
-        provider: s3
-        access_key_id: AKIAJKYWAF3QS7SFL75Q
-        secret_access_key:
-          secure: nCp4HC3PewZ6nfmnymdPn15UbZCFHXZEjzZbWtRhjDxR62fycRZSqvF47F4SMxod2DR3h7xT5k0Yj0WkfaKaLWPcVLeuyhI5LsB2tL/1jZQWvde6wQRoL23oE+Fs2hw8AFpg3V/tOO5K/yco1isToq4nKyNo0VDhRhHDguj+F2lLX9t04DWxg1zQABPgSFJCGHVj1QjILnPQ6k+VD2FGecx8a9sfcG2XiRvRIbYRhCZDwOd/D0L52GJqOIfcXrbb9p/dVw0QI1oijUT76+6CRiNvbzx+koAkrMXKY+Ko32PUQ68LxhY0J9sTdyCfRSE24Unb/hbTbWwlZElou0+hF0WloLyZKUWn5OT7hY0Q8O2oTY6U27MpiARYaN2kfhQYnLwOc0osGC8IwT4I8ThFzVxgeTzBXSS/PFiXjFmjRAvjPt7aYN02PAMuRB2WxW+gN80S+B8TBh07g99PcHQ1HZXPbcXBTyDXbeJHCBi5ut1wrIjIxLvGJq/vmB+lkU2LHeTPdKuzi1cLBKRLD8Qdg9tzeMrAFDtCp0zSFe0cFZqzgtCIvLcyGBDBQTj8LiKSD2X6Fmmxg6zdnzU7tVqvcqvkXk+2Qjgb5NWxJlLeGtvBxyrbw/ig+kQaVak63i3GpHijLqsC9Z5FlAM53xuN7yMD/Xyb50HFdkDAUg43324=
-        bucket: getsentry-builds
-        skip_cleanup: true
-        local_dir: build
-        upload-dir: $TRAVIS_REPO_SLUG/$TRAVIS_COMMIT
-        acl: public_read
-        on:
-          branch: master
+      env: LANE='Deploy'
+      after_success:
+        - npm install -g @zeus-ci/cli
+        - zeus upload -t "application/tar+npm" *.tgz
+
+notifications:
+  webhooks:
+    urls:
+      - https://zeus.ci/hooks/bc7a3e5c-c58e-11e7-ab9f-0a580a280304/public/provider/travis/webhook
+    on_success: always
+    on_failure: always
+    on_start: always
+    on_cancel: always
+    on_error: always

@@ -5,12 +5,12 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 
-import com.facebook.react.ReactApplication;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableNativeArray;
 import com.facebook.react.bridge.ReadableNativeMap;
@@ -19,6 +19,7 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -52,11 +53,10 @@ import io.sentry.event.interfaces.UserInterface;
 public class RNSentryModule extends ReactContextBaseJavaModule {
 
     private static final Pattern mJsModuleIdPattern = Pattern.compile("(?:^|[/\\\\])(\\d+\\.js)$");
-    private static final String versionString = "0.30.2";
+    private static final String versionString = "0.42.0";
     private static final String sdkName = "sentry-react-native";
 
     private final ReactApplicationContext reactContext;
-    private final ReactApplication reactApplication;
 
     private static AndroidEventBuilderHelper androidHelper;
     private static PackageInfo packageInfo;
@@ -65,16 +65,11 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     private static ReadableMap tags;
     private static SentryClient sentryClient;
 
-    public RNSentryModule(ReactApplicationContext reactContext, ReactApplication reactApplication) {
+    public RNSentryModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
-        this.reactApplication = reactApplication;
         RNSentryModule.extra = new WritableNativeMap();
         RNSentryModule.packageInfo = getPackageInfo(reactContext);
-    }
-
-    public ReactApplication getReactApplication() {
-        return reactApplication;
     }
 
     @Override
@@ -90,18 +85,30 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startWithDsnString(String dsnString, final ReadableMap options) {
+    public void startWithDsnString(String dsnString, final ReadableMap options, Promise promise) {
         if (sentryClient != null) {
             logger.info(String.format("Already started, use existing client '%s'", dsnString));
+            promise.resolve(false);
             return;
         }
 
-        sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
+        try {
+            sentryClient = Sentry.init(dsnString, new AndroidSentryClientFactory(this.getReactApplicationContext()));
+        } catch (Exception e) {
+            logger.info(String.format("Catching on startWithDsnString, calling callback" + e.getMessage()));
+            promise.reject("SentryError", "Error during init", e);
+            return;
+        }
+
         androidHelper = new AndroidEventBuilderHelper(this.getReactApplicationContext());
         sentryClient.addEventSendCallback(new EventSendCallback() {
             @Override
             public void onFailure(Event event, Exception exception) {
-
+                // This needs to be there, otherwise in case of no internet the users app will not
+                // crash since we do not propagate the error further. The system needs to be
+                // overhauled to remove this "hack".
+                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
+                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, new WritableNativeMap());
             }
 
             @Override
@@ -118,6 +125,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
                     ExceptionInterface exceptionInterface = ((ExceptionInterface)event.getSentryInterfaces().get(ExceptionInterface.EXCEPTION_INTERFACE));
                     params.putString("message", exceptionInterface.getExceptions().getFirst().getExceptionMessage());
                 }
+                RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
                 RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_SENT_SUCCESSFULLY, params);
             }
         });
@@ -142,6 +150,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         });
         logger.info(String.format("startWithDsnString '%s'", dsnString));
+        promise.resolve(true);
     }
 
     @ReactMethod
@@ -169,9 +178,7 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
     public void setUser(ReadableMap user) {
         UserBuilder userBuilder = getUserBuilder(user);
         User builtUser = userBuilder.build();
-        if (builtUser.getId() != null) {
-            Sentry.setUser(builtUser);
-        }
+        Sentry.setUser(builtUser);
     }
 
     @ReactMethod
@@ -198,6 +205,8 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
 
         if (breadcrumb.hasKey("message")) {
             breadcrumbBuilder.setMessage(breadcrumb.getString("message"));
+        } else {
+            breadcrumbBuilder.setMessage("");
         }
         Sentry.record(breadcrumbBuilder.build());
     }
@@ -220,16 +229,14 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         if (event.hasKey("user")) {
             UserBuilder userBuilder = getUserBuilder(event.getMap("user"));
             User builtUser = userBuilder.build();
-            if (builtUser.getId() != null) {
-                UserInterface userInterface = new UserInterface(
-                        builtUser.getId(),
-                        builtUser.getUsername(),
-                        null,
-                        builtUser.getEmail(),
-                        builtUser.getData()
-                );
-                eventBuilder.withSentryInterface(userInterface);
-            }
+            UserInterface userInterface = new UserInterface(
+                    builtUser.getId(),
+                    builtUser.getUsername(),
+                    null,
+                    builtUser.getEmail(),
+                    builtUser.getData()
+            );
+            eventBuilder.withSentryInterface(userInterface);
         }
 
         if (castEvent.hasKey("extra")) {
@@ -238,9 +245,19 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         }
 
+        if (event.hasKey("fingerprint")) {
+            ReadableArray fingerprint = event.getArray("fingerprint");
+            ArrayList<String> print = new ArrayList<String>(fingerprint.size());
+            for(int i = 0; i < fingerprint.size(); ++i) {
+                print.add(i, fingerprint.getString(i));
+            }
+            eventBuilder.withFingerprint(print);
+        }
+
         if (castEvent.hasKey("tags")) {
             for (Map.Entry<String, Object> entry : castEvent.getMap("tags").toHashMap().entrySet()) {
-                eventBuilder.withTag(entry.getKey(), entry.getValue().toString());
+                String tagValue = entry.getValue() != null ? entry.getValue().toString() : "INVALID_TAG";
+                eventBuilder.withTag(entry.getKey(), tagValue);
             }
         }
 
@@ -249,11 +266,20 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             ReadableNativeMap exception = exceptionValues.getMap(0);
             ReadableNativeMap stacktrace = exception.getMap("stacktrace");
             ReadableNativeArray frames = (ReadableNativeArray)stacktrace.getArray("frames");
-            addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), frames);
+            if (exception.hasKey("value")) {
+                addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("value"), frames);
+            } else {
+                // We use type/type here since this indicates an Unhandled Promise Rejection
+                // https://github.com/getsentry/react-native-sentry/issues/353
+                addExceptionInterface(eventBuilder, exception.getString("type"), exception.getString("type"), frames);
+            }
+        }
+
+        if (event.hasKey("environment")) {
+            eventBuilder.withEnvironment(event.getString("environment"));
         }
 
         Sentry.capture(buildEvent(eventBuilder));
-        RNSentryEventEmitter.sendEvent(reactContext, RNSentryEventEmitter.SENTRY_EVENT_STORED, new WritableNativeMap());
     }
 
     @ReactMethod
@@ -296,7 +322,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
         androidHelper.helpBuildingEvent(eventBuilder);
 
         setRelease(eventBuilder);
-        stripInternalSentry(eventBuilder);
         eventBuilder.withBreadcrumbs(Sentry.getStoredClient().getContext().getBreadcrumbs());
 
         if (extra != null) {
@@ -411,16 +436,6 @@ public class RNSentryModule extends ReactContextBaseJavaModule {
             }
         }
         return "";
-    }
-
-    private static void stripInternalSentry(EventBuilder eventBuilder) {
-        if (extra != null) {
-            for (Map.Entry<String, Object> entry : extra.toHashMap().entrySet()) {
-                if (entry.getKey().startsWith("__sentry")) {
-                    extra.putNull(entry.getKey());
-                }
-            }
-        }
     }
 
     private static void setRelease(EventBuilder eventBuilder) {

@@ -6,11 +6,10 @@
 #import "RCTConvert.h"
 #endif
 
-#import <KSCrash/KSCrash.h>
 #import <Sentry/Sentry.h>
 
-NSString *const RNSentryVersionString = @"0.30.2";
-NSString *const RNSentrySdkName = @"sentry-react-native";
+NSString *const RNSentryVersionString = @"0.42.0";
+NSString *const RNSentrySdkName = @"sentry.javascript.react-native";
 
 @interface RNSentry()
 
@@ -116,37 +115,48 @@ RCT_EXPORT_MODULE()
     return @{@"nativeClientAvailable": @YES};
 }
 
-RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString options:(NSDictionary *_Nonnull)options)
+RCT_EXPORT_METHOD(crashedLastLaunch:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    NSNumber *crashedLastLaunch = @NO;
+    if (SentryClient.sharedClient && [SentryClient.sharedClient crashedLastLaunch]) {
+        crashedLastLaunch = @YES;
+    }
+    resolve(crashedLastLaunch);
+}
+
+RCT_EXPORT_METHOD(startWithDsnString:(NSString * _Nonnull)dsnString
+                  options:(NSDictionary *_Nonnull)options
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
-    static dispatch_once_t onceStartToken;
-    dispatch_once(&onceStartToken, ^{
-        NSError *error = nil;
-        self.moduleMapping = [[NSMutableDictionary alloc] init];
-        SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
-        client.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
-            [self injectReactNativeFrames:event];
-            [self setReleaseVersionDist:event];
-        };
-        client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
-            // We don't want to send an event after startup that came from a NSException of react native
-            // Because we sent it already before the app crashed.
-            if (nil != event.exceptions.firstObject.type &&
-                [event.exceptions.firstObject.type rangeOfString:@"RCTFatalException"].location != NSNotFound) {
-                NSLog(@"RCTFatalException");
-                return NO;
-            }
-            // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here
-            if (nil != options[@"sampleRate"]) {
-                return ([options[@"sampleRate"] floatValue] >= ((double)arc4random() / 0x100000000));
-            }
-            return YES;
-        };
-        [SentryClient setSharedClient:client];
-        [SentryClient.sharedClient startCrashHandlerWithError:&error];
-        if (error) {
-            [NSException raise:@"SentryReactNative" format:@"%@", error.localizedDescription];
+    NSError *error = nil;
+    self.moduleMapping = [[NSMutableDictionary alloc] init];
+    SentryClient *client = [[SentryClient alloc] initWithDsn:dsnString didFailWithError:&error];
+    client.beforeSerializeEvent = ^(SentryEvent * _Nonnull event) {
+        [self injectReactNativeFrames:event];
+        [self setReleaseVersionDist:event];
+    };
+    client.shouldSendEvent = ^BOOL(SentryEvent * _Nonnull event) {
+        // We don't want to send an event after startup that came from a Unhandled JS Exception of react native
+        // Because we sent it already before the app crashed.
+        if (nil != event.exceptions.firstObject.type &&
+            [event.exceptions.firstObject.type rangeOfString:@"Unhandled JS Exception"].location != NSNotFound) {
+            NSLog(@"Unhandled JS Exception");
+            return NO;
         }
-    });
+        // Since we set shouldSendEvent for react-native we need to duplicate the code for sampling here
+        if (nil != options[@"sampleRate"]) {
+            return ([options[@"sampleRate"] floatValue] >= ((double)arc4random() / 0x100000000));
+        }
+        return YES;
+    };
+    [SentryClient setSharedClient:client];
+    [SentryClient.sharedClient startCrashHandlerWithError:&error];
+    if (error) {
+        reject(@"SentryReactNative", error.localizedDescription, error);
+        return;
+    }
+    resolve(@YES);
 }
 
 RCT_EXPORT_METHOD(activateStacktraceMerging:(RCTPromiseResolveBlock)resolve
